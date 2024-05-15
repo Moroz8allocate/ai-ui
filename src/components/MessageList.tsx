@@ -6,17 +6,45 @@ const List = styled.ul`
   flex: 1;
   padding: 10px;
   overflow-y: scroll;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #ffffff;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
 `;
 
 const MessageItem = styled.li`
-  padding: 5px 10px;
-  border-bottom: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #f5f7fa;
+  border-radius: 5px;
+  border: 1px solid #ddd;
   position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+`;
+
+const Avatar = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #007bff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  font-size: 20px;
+  margin-right: 10px;
+`;
+
+const MessageContent = styled.div`
+  flex: 1;
 `;
 
 const MessageHeader = styled.div`
   font-weight: bold;
-  font-size: 12px;
+  font-size: 14px;
+  margin-bottom: 5px;
 `;
 
 const Timestamp = styled.div`
@@ -32,13 +60,20 @@ interface MessageListProps {
 }
 
 const MessageList: React.FC<MessageListProps> = ({ messages }) => {
+  const getAvatar = (user: string) => {
+    return user === 'Cleverly' ? '💡' : 'IM';
+  };
+
   return (
     <List>
       {messages.map((message, index) => (
         <MessageItem key={index}>
-          <MessageHeader>{message.user}</MessageHeader>
-          <div>{message.text}</div>
-          <Timestamp>{message.timestamp}</Timestamp>
+          <Avatar>{getAvatar(message.user)}</Avatar>
+          <MessageContent>
+            <MessageHeader>{message.user}</MessageHeader>
+            <div>{message.text}</div>
+            <Timestamp>{message.timestamp}</Timestamp>
+          </MessageContent>
         </MessageItem>
       ))}
     </List>
