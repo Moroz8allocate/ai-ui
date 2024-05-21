@@ -8,7 +8,7 @@ const List = styled.ul`
   overflow-y: scroll;
   border: 1px solid #ccc;
   border-radius: 5px;
-  background-color: #ffffff;
+  background-color: #f9f9f9;
   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
 `;
 
@@ -17,7 +17,7 @@ const MessageItem = styled.li`
   align-items: center;
   padding: 10px;
   margin-bottom: 10px;
-  background-color: #f5f7fa;
+  background-color: #fff;
   border-radius: 5px;
   border: 1px solid #ddd;
   position: relative;
@@ -32,9 +32,14 @@ const Avatar = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #fff;
-  font-size: 20px;
+  overflow: hidden;
   margin-right: 10px;
+`;
+
+const AvatarImg = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 `;
 
 const MessageContent = styled.div`
@@ -61,7 +66,10 @@ interface MessageListProps {
 
 const MessageList: React.FC<MessageListProps> = ({ messages }) => {
   const getAvatar = (user: string) => {
-    return user === 'Cleverly' ? '💡' : 'IM';
+    if (user === 'Cleverly') {
+      return <AvatarImg src="/images/bulb.png" alt="Cleverly Avatar" />;
+    }
+    return <span>IM</span>;
   };
 
   return (

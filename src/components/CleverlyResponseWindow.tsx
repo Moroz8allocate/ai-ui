@@ -17,10 +17,24 @@ const Header = styled.div`
   border-bottom: 1px solid #ddd;
 `;
 
-const HeaderTitle = styled.h2`
+const LogoContainer = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const StarsIcon = styled.img`
+  height: 30px;
+  margin-right: 5px;
+`;
+
+const BulbIcon = styled.img`
+  height: 30px;
+  margin-right: 10px;
+`;
+
+const LogoText = styled.div`
   font-size: 24px;
   font-weight: bold;
-  margin: 0;
 `;
 
 const CloseButton = styled.button`
@@ -66,7 +80,11 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
   return (
     <Window>
       <Header>
-        <HeaderTitle>Cleverly</HeaderTitle>
+        <LogoContainer>
+          <StarsIcon src="/images/stars.png" alt="Stars Icon" />
+          <BulbIcon src="/images/bulb.png" alt="Bulb Icon" />
+          <LogoText>Cleverly</LogoText>
+        </LogoContainer>
         <CloseButton onClick={handleClose}>✖</CloseButton>
       </Header>
       <ResponseContent>{response}</ResponseContent>
