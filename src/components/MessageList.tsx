@@ -72,18 +72,20 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
     return <span>IM</span>;
   };
 
+  const a = messages.map((message, index) => (
+    <MessageItem key={index}>
+      <Avatar>{getAvatar(message.user)}</Avatar>
+      <MessageContent>
+        <MessageHeader>{message.user}</MessageHeader>
+        <div>{message.text}</div>
+        <Timestamp>{message.timestamp}</Timestamp>
+      </MessageContent>
+    </MessageItem>
+  ));
+
   return (
     <List>
-      {messages.map((message, index) => (
-        <MessageItem key={index}>
-          <Avatar>{getAvatar(message.user)}</Avatar>
-          <MessageContent>
-            <MessageHeader>{message.user}</MessageHeader>
-            <div>{message.text}</div>
-            <Timestamp>{message.timestamp}</Timestamp>
-          </MessageContent>
-        </MessageItem>
-      ))}
+      {a}
     </List>
   );
 };
