@@ -3,14 +3,8 @@ import styled from 'styled-components';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { Message } from '../types';
-import CleverlyResponseWindow from './CleverlyResponseWindow';
 
 const ChatWrapper = styled.div`
-  display: flex;
-  width: 100%;
-`;
-
-const ChatSection = styled.div`
   display: flex;
   flex-direction: column;
   width: 50%;
@@ -18,6 +12,7 @@ const ChatSection = styled.div`
   border-right: 1px solid #ccc;
   padding: 20px;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  padding-bottom: 80px;
 `;
 
 const ChatHeader = styled.div`
@@ -50,24 +45,29 @@ interface ChatProps {
 const Chat: React.FC<ChatProps> = ({ onCleverlyResponse }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [user] = useState<string>('User');
-  const [pdfResult, setPdfResult] = useState<any>(null);
   const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
+    // Initial message from AI
+    const initialMessage = {
+      user: 'Cleverly',
+      text: 'Great! Drop a document with the work order information in it or paste the text into the window below, and I will get started.',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    setMessages([initialMessage]);
+
     ws.current = new WebSocket('ws://localhost:8000/ws/chat');
     ws.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'message') {
+      const response = JSON.parse(event.data);
+      if (response.type === 'message') {
         const cleverlyMessage = {
           user: 'Cleverly',
-          text: data.text,
+          text: response.text,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages((prevMessages) => [...prevMessages, cleverlyMessage]);
-        onCleverlyResponse(data.text);
-      } else if (data.type === 'pdfResult') {
-        setPdfResult(data.pdfResult);
       }
+      onCleverlyResponse(event.data);
     };
     return () => {
       ws.current?.close();
@@ -84,34 +84,40 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse }) => {
     ws.current?.send(JSON.stringify({ type: 'message', text }));
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (reader.result) {
-          const arrayBuffer = reader.result as ArrayBuffer;
-          ws.current?.send(JSON.stringify({ type: 'file', file: Array.from(new Uint8Array(arrayBuffer)) }));
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    }
+  const handleFileUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (reader.result) {
+        const arrayBuffer = reader.result as ArrayBuffer;
+        ws.current?.send(arrayBuffer);
+
+        const fileMessage: Message = {
+          user,
+          text: `File_pdf ${file.name}`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages((prevMessages) => [...prevMessages, fileMessage]);
+
+        const thankYouMessage: Message = {
+          user: 'Cleverly',
+          text: 'Thank you.',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages((prevMessages) => [...prevMessages, thankYouMessage]);
+      }
+    };
+    reader.readAsArrayBuffer(file);
   };
 
   return (
     <ChatWrapper>
-      <ChatSection>
-        <ChatHeader>
-          <AvatarCircle>
-            <AvatarIcon src="/path/to/your/icon.png" alt="Cleverly Icon" />
-          </AvatarCircle>
-        </ChatHeader>
-        <MessageList messages={messages} />
-        <MessageInput onSend={sendMessage} onFileUpload={handleFileUpload} />
-      </ChatSection>
-      <ChatSection>
-        {pdfResult && <CleverlyResponseWindow response={pdfResult} />}
-      </ChatSection>
+      <ChatHeader>
+        <AvatarCircle>
+          <AvatarIcon src="/images/bulb.png" alt="Cleverly Icon" />
+        </AvatarCircle>
+      </ChatHeader>
+      <MessageList messages={messages} />
+      <MessageInput onSend={sendMessage} onFileUpload={handleFileUpload} />
     </ChatWrapper>
   );
 };

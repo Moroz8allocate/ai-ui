@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import styled from 'styled-components';
 import Chat from './Chat';
 import CleverlyResponseWindow from './CleverlyResponseWindow';
@@ -12,11 +12,12 @@ const Container = styled.div`
 `;
 
 const ChatContainer: React.FC = () => {
-  const [cleverlyResponse, setCleverlyResponse] = useState<string>('');
+  const [cleverlyResponse, setCleverlyResponse] = useState<any>(null);
 
-  const handleCleverlyResponse = (response: string) => {
-    setCleverlyResponse(response);
-  };
+  const handleCleverlyResponse = useCallback((response: string) => {
+    const parsedResponse = JSON.parse(response);
+    setCleverlyResponse(parsedResponse);
+  }, []);
 
   return (
     <Container>

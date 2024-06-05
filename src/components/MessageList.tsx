@@ -60,6 +60,14 @@ const Timestamp = styled.div`
   right: 10px;
 `;
 
+const FileIcon = styled.div`
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  color: #007bff;
+  margin-right: 10px;
+`;
+
 interface MessageListProps {
   messages: Message[];
 }
@@ -72,20 +80,24 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
     return <span>IM</span>;
   };
 
-  const a = messages.map((message, index) => (
-    <MessageItem key={index}>
-      <Avatar>{getAvatar(message.user)}</Avatar>
-      <MessageContent>
-        <MessageHeader>{message.user}</MessageHeader>
-        <div>{message.text}</div>
-        <Timestamp>{message.timestamp}</Timestamp>
-      </MessageContent>
-    </MessageItem>
-  ));
-
   return (
     <List>
-      {a}
+      {messages.map((message, index) => (
+        <MessageItem key={index}>
+          <Avatar>{getAvatar(message.user)}</Avatar>
+          <MessageContent>
+            <MessageHeader>{message.user}</MessageHeader>
+            <div>
+              {message.text.startsWith('File_pdf') ? (
+                <FileIcon>📄 {message.text.replace('File_pdf ', '')}</FileIcon>
+              ) : (
+                message.text
+              )}
+            </div>
+            <Timestamp>{message.timestamp}</Timestamp>
+          </MessageContent>
+        </MessageItem>
+      ))}
     </List>
   );
 };
