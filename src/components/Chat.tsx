@@ -13,6 +13,7 @@ const ChatWrapper = styled.div`
   padding: 20px;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   padding-bottom: 80px;
+  position: relative;
 `;
 
 const ChatHeader = styled.div`
@@ -38,6 +39,74 @@ const AvatarIcon = styled.img`
   height: 40px;
 `;
 
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 80%;
+  max-width: 400px;
+`;
+
+const ModalHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+`;
+
+const ModalAvatarCircle = styled.div`
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background-color: #4a5c82;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 3px solid #d0d7e9;
+  margin-bottom: 10px;
+`;
+
+const ModalAvatarIcon = styled.img`
+  width: 40px;
+  height: 40px;
+`;
+
+const ModalText = styled.p`
+  font-size: 16px;
+  margin: 10px 0;
+`;
+
+const ModalButton = styled.button`
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  &:hover {
+    background-color: #0056b3;
+  }
+`;
+
 interface ChatProps {
   onCleverlyResponse: (response: string) => void;
 }
@@ -45,10 +114,11 @@ interface ChatProps {
 const Chat: React.FC<ChatProps> = ({ onCleverlyResponse }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [user] = useState<string>('User');
+  const [showModal, setShowModal] = useState<boolean>(true);
+  const [allowTyping, setAllowTyping] = useState<boolean>(false);
   const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    // Initial message from AI
     const initialMessage = {
       user: 'Cleverly',
       text: 'Great! Drop a document with the work order information in it or paste the text into the window below, and I will get started.',
@@ -75,6 +145,7 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse }) => {
   }, [onCleverlyResponse]);
 
   const sendMessage = (text: string) => {
+    if (!allowTyping) return;
     const message: Message = {
       user,
       text,
@@ -85,6 +156,7 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse }) => {
   };
 
   const handleFileUpload = (file: File) => {
+    if (!allowTyping) return;
     const reader = new FileReader();
     reader.onload = () => {
       if (reader.result) {
@@ -109,8 +181,31 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse }) => {
     reader.readAsArrayBuffer(file);
   };
 
+  const handleCreateWorkOrder = () => {
+    setAllowTyping(true);
+    setShowModal(false);
+  };
+
   return (
     <ChatWrapper>
+      {showModal && (
+        <ModalOverlay>
+          <ModalContent>
+            <ModalHeader>
+              <ModalAvatarCircle>
+                <ModalAvatarIcon src="/images/bulb.png" alt="Cleverly Icon" />
+              </ModalAvatarCircle>
+              <ModalText>Hi, I’m Dux - your Cleverly AI Assistant.</ModalText>
+              <ModalText>What can I do for you today?</ModalText>
+              <ModalText>Choose one of the options below and we will get started!</ModalText>
+            </ModalHeader>
+            <ModalButton onClick={handleCreateWorkOrder}>Create a work order</ModalButton>
+            <ModalButton>Get help with Cleverly</ModalButton>
+            <ModalButton>Get a report</ModalButton>
+            <ModalButton>Ask Cleverly a question</ModalButton>
+          </ModalContent>
+        </ModalOverlay>
+      )}
       <ChatHeader>
         <AvatarCircle>
           <AvatarIcon src="/images/bulb.png" alt="Cleverly Icon" />
