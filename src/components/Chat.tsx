@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
+import { PDFDocument, rgb } from 'pdf-lib';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { Message } from '../types';
@@ -45,7 +46,7 @@ const ModalOverlay = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: white;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -109,9 +110,10 @@ const ModalButton = styled.button`
 
 interface ChatProps {
   onCleverlyResponse: (response: string) => void;
+  serverMessage: string;
 }
 
-const Chat: React.FC<ChatProps> = ({ onCleverlyResponse }) => {
+const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessage }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [user] = useState<string>('User');
   const [showModal, setShowModal] = useState<boolean>(true);
@@ -139,12 +141,51 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse }) => {
       }
       onCleverlyResponse(event.data);
     };
+    ws.current.onclose = () => {
+      console.error("WebSocket connection closed.");
+    };
+    ws.current.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
     return () => {
       ws.current?.close();
     };
   }, [onCleverlyResponse]);
 
-  const sendMessage = (text: string) => {
+  useEffect(() => {
+    if (serverMessage) {
+      const message: Message = {
+        user: 'Cleverly',
+        text: serverMessage,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prevMessages) => [...prevMessages, message]);
+    }
+  }, [serverMessage]);
+
+  const createPdfFromText = async (text: string): Promise<ArrayBuffer> => {
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([600, 400]);
+    const { height } = page.getSize();
+    const fontSize = 12;
+    const lines = text.split('\n');
+    let yPosition = height - fontSize;
+
+    for (const line of lines) {
+      page.drawText(line, {
+        x: 50,
+        y: yPosition,
+        size: fontSize,
+        color: rgb(0, 0, 0),
+      });
+      yPosition -= fontSize + 5;
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    return pdfBytes;
+  };
+
+  const sendMessage = useCallback(async (text: string) => {
     if (!allowTyping) return;
     const message: Message = {
       user,
@@ -152,8 +193,17 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse }) => {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
     setMessages((prevMessages) => [...prevMessages, message]);
-    ws.current?.send(JSON.stringify({ type: 'message', text }));
-  };
+
+    const pdfBytes = await createPdfFromText(text);
+    ws.current?.send(pdfBytes);
+
+    const thankYouMessage: Message = {
+      user: 'Cleverly',
+      text: 'Thank you. I am processing the text from your input and will then try to create the work order.',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    setMessages((prevMessages) => [...prevMessages, thankYouMessage]);
+  }, [allowTyping, user]);
 
   const handleFileUpload = (file: File) => {
     if (!allowTyping) return;
@@ -172,7 +222,7 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse }) => {
 
         const thankYouMessage: Message = {
           user: 'Cleverly',
-          text: 'Thank you.',
+          text: 'Thank you. I am extracting the text from your document and will then try to create the work order.',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages((prevMessages) => [...prevMessages, thankYouMessage]);

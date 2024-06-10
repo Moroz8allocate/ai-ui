@@ -13,15 +13,17 @@ const Container = styled.div`
 
 const ChatContainer: React.FC = () => {
   const [cleverlyResponse, setCleverlyResponse] = useState<any>(null);
+  const [serverMessage, setServerMessage] = useState<string>('');
 
   const handleCleverlyResponse = useCallback((response: string) => {
     const parsedResponse = JSON.parse(response);
     setCleverlyResponse(parsedResponse);
+    setServerMessage('Please see the work order created on the right. To generate the work order, you must press submit. However, please check this information and ensure you are happy with all the relevant information.');
   }, []);
 
   return (
     <Container>
-      <Chat onCleverlyResponse={handleCleverlyResponse} />
+      <Chat onCleverlyResponse={handleCleverlyResponse} serverMessage={serverMessage} />
       <CleverlyResponseWindow response={cleverlyResponse} />
     </Container>
   );

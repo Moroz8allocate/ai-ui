@@ -5,10 +5,7 @@ import {
   AccordionSummary,
   AccordionDetails,
   TextField,
-  Select,
-  MenuItem,
   FormControl,
-  InputLabel,
   RadioGroup,
   FormControlLabel,
   Radio,
@@ -113,12 +110,12 @@ interface ResponseData {
   sublocation: string;
   access: string;
   assetCategory: string;
-  shortJobDescription: string;
+  jobDescription: string;
   workDescription: string;
   priority: string;
   estimatedDuration: string;
   unit: string;
-  customerReference: string;
+  reference: string;
   costCategory: string;
   service: string;
   pricing: string;
@@ -132,7 +129,7 @@ interface ResponseData {
 }
 
 interface CleverlyResponseWindowProps {
-  response: { pdfResult: Partial<ResponseData> };
+  response: { pdfResult: Partial<ResponseData> } & Partial<ResponseData>;
 }
 
 const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ response }) => {
@@ -145,12 +142,12 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
     sublocation: '',
     access: '',
     assetCategory: '',
-    shortJobDescription: '',
+    jobDescription: '',
     workDescription: '',
     priority: '',
     estimatedDuration: '',
     unit: '',
-    customerReference: '',
+    reference: '',
     costCategory: '',
     service: '',
     pricing: '',
@@ -168,7 +165,6 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
       setData((prevData: ResponseData) => ({
         ...prevData,
         ...response.pdfResult,
-        jobHistory: response.pdfResult.jobHistory || []
       }));
     }
   }, [response]);
@@ -228,17 +224,12 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
               </AccordionSummary>
               <AccordionDetails>
                 <FormControl fullWidth margin="dense" variant="outlined">
-                  <InputLabel>Assigned to</InputLabel>
-                  <Select
+                  <TextField
+                    label="Assigned to"
                     value={data.admin}
                     onChange={(e) => handleChange('admin', e.target.value)}
-                    label="Assigned to"
-                  >
-                    <MenuItem value="">
-                      <em>None</em>
-                    </MenuItem>
-                    {/* Add other menu items as needed */}
-                  </Select>
+                    variant="outlined"
+                  />
                 </FormControl>
               </AccordionDetails>
             </Accordion>
@@ -266,17 +257,12 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
                   />
                 </FormControl>
                 <FormControl fullWidth margin="dense" variant="outlined">
-                  <InputLabel>Source</InputLabel>
-                  <Select
+                  <TextField
+                    label="Source"
                     value={data.source}
                     onChange={(e) => handleChange('source', e.target.value)}
-                    label="Source"
-                  >
-                    <MenuItem value="">
-                      <em>None</em>
-                    </MenuItem>
-                    {/* Add other menu items as needed */}
-                  </Select>
+                    variant="outlined"
+                  />
                 </FormControl>
               </AccordionDetails>
             </Accordion>
@@ -288,17 +274,12 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
               </AccordionSummary>
               <AccordionDetails>
                 <FormControl fullWidth margin="dense" variant="outlined">
-                  <InputLabel>Short job description</InputLabel>
-                  <Select
-                    value={data.shortJobDescription}
-                    onChange={(e) => handleChange('shortJobDescription', e.target.value)}
+                  <TextField
                     label="Short job description"
-                  >
-                    <MenuItem value="">
-                      <em>Select...</em>
-                    </MenuItem>
-                    {/* Add other menu items as needed */}
-                  </Select>
+                    value={data.jobDescription}
+                    onChange={(e) => handleChange('jobDescription', e.target.value)}
+                    variant="outlined"
+                  />
                 </FormControl>
                 <FormControl fullWidth margin="dense" variant="outlined">
                   <TextField
@@ -333,22 +314,18 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
                   />
                 </FormControl>
                 <FormControl fullWidth margin="dense" variant="outlined">
-                  <InputLabel>Unit</InputLabel>
-                  <Select
+                  <TextField
+                    label="Unit"
                     value={data.unit}
                     onChange={(e) => handleChange('unit', e.target.value)}
-                    label="Unit"
-                  >
-                    <MenuItem value="Minutes">Minutes</MenuItem>
-                    <MenuItem value="Hours">Hours</MenuItem>
-                    {/* Add other menu items as needed */}
-                  </Select>
+                    variant="outlined"
+                  />
                 </FormControl>
                 <FormControl fullWidth margin="dense" variant="outlined">
                   <TextField
                     label="Customer reference"
-                    value={data.customerReference}
-                    onChange={(e) => handleChange('customerReference', e.target.value)}
+                    value={data.reference}
+                    onChange={(e) => handleChange('reference', e.target.value)}
                     variant="outlined"
                   />
                 </FormControl>
@@ -371,30 +348,20 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
               </AccordionSummary>
               <AccordionDetails>
                 <FormControl fullWidth margin="dense" variant="outlined">
-                  <InputLabel>Cost category</InputLabel>
-                  <Select
+                  <TextField
+                    label="Cost category"
                     value={data.costCategory}
                     onChange={(e) => handleChange('costCategory', e.target.value)}
-                    label="Cost category"
-                  >
-                    <MenuItem value="">
-                      <em>Select...</em>
-                    </MenuItem>
-                    {/* Add other menu items as needed */}
-                  </Select>
+                    variant="outlined"
+                  />
                 </FormControl>
                 <FormControl fullWidth margin="dense" variant="outlined">
-                  <InputLabel>Service</InputLabel>
-                  <Select
+                  <TextField
+                    label="Service"
                     value={data.service}
                     onChange={(e) => handleChange('service', e.target.value)}
-                    label="Service"
-                  >
-                    <MenuItem value="">
-                      <em>Select...</em>
-                    </MenuItem>
-                    {/* Add other menu items as needed */}
-                  </Select>
+                    variant="outlined"
+                  />
                 </FormControl>
               </AccordionDetails>
             </Accordion>
@@ -425,29 +392,20 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
               </AccordionSummary>
               <AccordionDetails>
                 <FormControl fullWidth margin="dense" variant="outlined">
-                  <InputLabel>Select Time span</InputLabel>
-                  <Select
+                  <TextField
+                    label="Select Time span"
                     value={data.timeSpan}
                     onChange={(e) => handleChange('timeSpan', e.target.value)}
-                    label="Select Time span"
-                  >
-                    <MenuItem value="">
-                      <em>Select...</em>
-                    </MenuItem>
-                    {/* Add other menu items as needed */}
-                  </Select>
+                    variant="outlined"
+                  />
                 </FormControl>
                 <FormControl fullWidth margin="dense" variant="outlined">
-                  <InputLabel>Timing</InputLabel>
-                  <Select
+                  <TextField
+                    label="Timing"
                     value={data.timing}
                     onChange={(e) => handleChange('timing', e.target.value)}
-                    label="Timing"
-                  >
-                    <MenuItem value="At">At</MenuItem>
-                    <MenuItem value="Between">Between</MenuItem>
-                    {/* Add other menu items as needed */}
-                  </Select>
+                    variant="outlined"
+                  />
                 </FormControl>
                 <TimeFieldsWrapper>
                   <FormControl fullWidth margin="dense" variant="outlined">
@@ -500,17 +458,12 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
                   />
                 </FormControl>
                 <FormControl fullWidth margin="dense" variant="outlined">
-                  <InputLabel>Sublocation</InputLabel>
-                  <Select
+                  <TextField
+                    label="Sublocation"
                     value={data.sublocation}
                     onChange={(e) => handleChange('sublocation', e.target.value)}
-                    label="Sublocation"
-                  >
-                    <MenuItem value="">
-                      <em>Select...</em>
-                    </MenuItem>
-                    {/* Add other menu items as needed */}
-                  </Select>
+                    variant="outlined"
+                  />
                 </FormControl>
                 <FormControl fullWidth margin="dense" variant="outlined">
                   <TextField
@@ -522,17 +475,12 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
                   />
                 </FormControl>
                 <FormControl fullWidth margin="dense" variant="outlined">
-                  <InputLabel>Asset Category</InputLabel>
-                  <Select
+                  <TextField
+                    label="Asset Category"
                     value={data.assetCategory}
                     onChange={(e) => handleChange('assetCategory', e.target.value)}
-                    label="Asset Category"
-                  >
-                    <MenuItem value="">
-                      <em>Select...</em>
-                    </MenuItem>
-                    {/* Add other menu items as needed */}
-                  </Select>
+                    variant="outlined"
+                  />
                 </FormControl>
               </AccordionDetails>
             </Accordion>
