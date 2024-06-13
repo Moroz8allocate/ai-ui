@@ -110,10 +110,10 @@ const ModalButton = styled.button`
 
 interface ChatProps {
   onCleverlyResponse: (response: string) => void;
-  serverMessage: string;
+  serverMessages: string[];
 }
 
-const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessage }) => {
+const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [user] = useState<string>('User');
   const [showModal, setShowModal] = useState<boolean>(true);
@@ -153,15 +153,17 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessage }) => {
   }, [onCleverlyResponse]);
 
   useEffect(() => {
-    if (serverMessage) {
-      const message: Message = {
-        user: 'Cleverly',
-        text: serverMessage,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-      setMessages((prevMessages) => [...prevMessages, message]);
-    }
-  }, [serverMessage]);
+    serverMessages.forEach((serverMessage) => {
+      if (serverMessage) {
+        const message: Message = {
+          user: 'Cleverly',
+          text: serverMessage,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages((prevMessages) => [...prevMessages, message]);
+      }
+    });
+  }, [serverMessages]);
 
   const createPdfFromText = async (text: string): Promise<ArrayBuffer> => {
     const pdfDoc = await PDFDocument.create();
