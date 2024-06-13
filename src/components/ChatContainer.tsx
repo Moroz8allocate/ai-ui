@@ -74,26 +74,29 @@ const ChatContainer: React.FC = () => {
   const [serverMessages, setServerMessages] = useState<string[]>([]);
   const [pendingVariants, setPendingVariants] = useState<string[]>([]);
   const [currentField, setCurrentField] = useState<string | null>(null);
+  const [parsedData, setParsedData] = useState<Partial<ResponseData>>({});
 
   const handleCleverlyResponse = useCallback((response: string) => {
     const parsedResponse = JSON.parse(response);
     setCleverlyResponse(parsedResponse);
 
-    const parsedData = responseSchema.safeParse(parsedResponse.pdfResult || parsedResponse);
+    const parsedResult = responseSchema.safeParse(parsedResponse.pdfResult || parsedResponse);
 
-    if (!parsedData.success) {
+    if (!parsedResult.success) {
       console.error('Invalid response data');
       return;
     }
 
-    const missingFields = Object.keys(parsedData.data).filter((key) => {
+    setParsedData(parsedResult.data);
+
+    const missingFields = Object.keys(parsedResult.data).filter((key) => {
       const typedKey = key as ResponseKeys;
-      return !parsedData.data[typedKey];
+      return !parsedResult.data[typedKey];
     });
 
     const firstMessage = 'Please see the work order created on the right. To generate the work order, you must press submit. However, please check this information and ensure you are happy with all the relevant information.';
 
-    const variantMessages = Object.entries(parsedData.data).flatMap(([key, value]) => {
+    const variantMessages = Object.entries(parsedResult.data).flatMap(([key, value]) => {
       const typedKey = key as ResponseKeys;
       if (Array.isArray(value) && value.length > 1) {
         return `I have detected an error in the input ${fieldNamesMap[typedKey]}. Did you mean\n- ${value.join('\n- ')}`;
@@ -119,22 +122,31 @@ const ChatContainer: React.FC = () => {
     }
 
     setCurrentField(
-      Object.keys(parsedData.data).find(
-        key => Array.isArray(parsedData.data[key as ResponseKeys]) && (parsedData.data[key as ResponseKeys] as string[])?.length > 1
+      Object.keys(parsedResult.data).find(
+        key => Array.isArray(parsedResult.data[key as ResponseKeys]) && (parsedResult.data[key as ResponseKeys] as string[])?.length > 1
       ) || null
     );
   }, []);
 
   const handleUserResponse = useCallback((userMessage: string) => {
     if (currentField) {
-      const updatedMessage = `Please use ${userMessage}`;
-      setServerMessages(prevMessages => [...prevMessages, updatedMessage]);
+      const variant = userMessage.replace('Please use ', '').trim();
+      const variants = parsedData[currentField as ResponseKeys] as string[];
 
-      setTimeout(() => {
-        setServerMessages(prevMessages => [
-          ...prevMessages,
-          'Thank you! I have updated the address field with the one of your choosing.'
-        ]);
+      if (variants.includes(variant)) {
+        const updatedData = {
+          ...parsedData,
+          [currentField]: variant
+        };
+        setParsedData(updatedData);
+        setCleverlyResponse((prevResponse: any) => ({
+          ...prevResponse,
+          pdfResult: {
+            ...prevResponse.pdfResult,
+            [currentField]: variant
+          }
+        }));
+        setServerMessages(prevMessages => [...prevMessages, `Thank you! I have updated the ${fieldNamesMap[currentField as ResponseKeys]} field with the one of your choosing.`]);
 
         if (pendingVariants.length > 0) {
           const nextVariant = pendingVariants.shift();
@@ -143,9 +155,11 @@ const ChatContainer: React.FC = () => {
         } else {
           setCurrentField(null);
         }
-      }, 1000);  // Adjust the delay as needed
+      } else {
+        setServerMessages(prevMessages => [...prevMessages, 'The option you provided does not match any of the available options. Please try again.']);
+      }
     }
-  }, [currentField, pendingVariants]);
+  }, [currentField, parsedData, pendingVariants]);
 
   return (
     <Container>

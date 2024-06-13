@@ -162,9 +162,16 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
 
   useEffect(() => {
     if (response) {
+      const filteredResponse = Object.entries(response.pdfResult || response).reduce((acc, [key, value]) => {
+        if (!Array.isArray(value) || value.length <= 1) {
+          (acc as any)[key as keyof ResponseData] = value;
+        }
+        return acc;
+      }, {} as Partial<ResponseData>);
+      
       setData((prevData: ResponseData) => ({
         ...prevData,
-        ...response.pdfResult,
+        ...filteredResponse,
       }));
     }
   }, [response]);
