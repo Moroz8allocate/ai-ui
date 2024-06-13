@@ -111,13 +111,16 @@ const ModalButton = styled.button`
 interface ChatProps {
   onCleverlyResponse: (response: string) => void;
   serverMessages: string[];
+  onUserResponse: (message: string) => void;
 }
 
-const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages }) => {
+const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, onUserResponse }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [user] = useState<string>('User');
   const [showModal, setShowModal] = useState<boolean>(true);
   const [allowTyping, setAllowTyping] = useState<boolean>(false);
+  const [lastField, setLastField] = useState<string | null>(null);
+  const [fieldOptions, setFieldOptions] = useState<string[]>([]);
   const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -161,6 +164,13 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages }) => {
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages((prevMessages) => [...prevMessages, message]);
+
+        if (serverMessage.includes('I have detected an error in the input')) {
+          const field = serverMessage.split('I have detected an error in the input ')[1].split('.')[0];
+          const options = serverMessage.split('- ').slice(1).map(option => option.trim());
+          setLastField(field);
+          setFieldOptions(options);
+        }
       }
     });
   }, [serverMessages]);
@@ -189,6 +199,7 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages }) => {
 
   const sendMessage = useCallback(async (text: string) => {
     if (!allowTyping) return;
+
     const message: Message = {
       user,
       text,
@@ -196,16 +207,37 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages }) => {
     };
     setMessages((prevMessages) => [...prevMessages, message]);
 
-    const pdfBytes = await createPdfFromText(text);
-    ws.current?.send(pdfBytes);
+    if (text.startsWith('Please use')) {
+      if (fieldOptions.includes(text.split('Please use ')[1].trim())) {
+        const thankYouMessage: Message = {
+          user: 'Cleverly',
+          text: `Thank you! I have updated the ${lastField} field with the one of your choosing.`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages((prevMessages) => [...prevMessages, thankYouMessage]);
 
-    const thankYouMessage: Message = {
-      user: 'Cleverly',
-      text: 'Thank you. I am processing the text from your input and will then try to create the work order.',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-    setMessages((prevMessages) => [...prevMessages, thankYouMessage]);
-  }, [allowTyping, user]);
+        // Update the field in your state or send an update to the server if needed
+        // updateField(lastField, text.split('Please use ')[1].trim());
+      } else {
+        const errorMessage: Message = {
+          user: 'Cleverly',
+          text: `The option you provided does not match any of the available options for the ${lastField} field.`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages((prevMessages) => [...prevMessages, errorMessage]);
+      }
+    } else {
+      const pdfBytes = await createPdfFromText(text);
+      ws.current?.send(pdfBytes);
+
+      const thankYouMessage: Message = {
+        user: 'Cleverly',
+        text: 'Thank you. I am processing the text from your input and will then try to create the work order.',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prevMessages) => [...prevMessages, thankYouMessage]);
+    }
+  }, [allowTyping, user, lastField, fieldOptions]);
 
   const handleFileUpload = (file: File) => {
     if (!allowTyping) return;

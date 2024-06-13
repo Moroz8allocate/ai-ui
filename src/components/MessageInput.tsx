@@ -68,6 +68,11 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSend, onFileUpload }) => 
         value={input}
         onChange={(e) => setInput(e.target.value)}
         placeholder="Message Dux..."
+        onKeyPress={(e) => {
+          if (e.key === 'Enter') {
+            handleSend();
+          }
+        }}
       />
       <Button onClick={handleSend}>Send</Button>
     </InputWrapper>
