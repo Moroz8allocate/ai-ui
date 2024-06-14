@@ -4,6 +4,7 @@ import { PDFDocument, rgb } from 'pdf-lib';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { Message } from '../types';
+import { ResponseData } from './ChatContainer';
 
 const ChatWrapper = styled.div`
   display: flex;
@@ -111,10 +112,11 @@ const ModalButton = styled.button`
 interface ChatProps {
   onCleverlyResponse: (response: string) => void;
   serverMessages: string[];
-  onUserResponse: (message: string) => void;
+  parsedData: Partial<ResponseData>;
+  setParsedData: React.Dispatch<React.SetStateAction<Partial<ResponseData>>>;
 }
 
-const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, onUserResponse }) => {
+const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedData, setParsedData }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [user] = useState<string>('User');
   const [showModal, setShowModal] = useState<boolean>(true);
@@ -207,17 +209,49 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, onUserR
     };
     setMessages((prevMessages) => [...prevMessages, message]);
 
-    if (text.startsWith('Please use')) {
-      if (fieldOptions.includes(text.split('Please use ')[1].trim())) {
+    if (text.startsWith('Please use ')) {
+      const variant = text.split('Please use ')[1].trim();
+      if (fieldOptions.includes(variant)) {
+        const updatedData = { ...parsedData, [lastField as keyof ResponseData]: variant };
+        setParsedData(updatedData);
+        console.log(`Updated field ${lastField} with variant ${variant}`);
+        console.log('Updated parsedData:', updatedData);
         const thankYouMessage: Message = {
           user: 'Cleverly',
           text: `Thank you! I have updated the ${lastField} field with the one of your choosing.`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
-        setMessages((prevMessages) => [...prevMessages, thankYouMessage]);
 
-        // Update the field in your state or send an update to the server if needed
-        // updateField(lastField, text.split('Please use ')[1].trim());
+        const nextVariantField = Object.keys(updatedData).find(
+          key => Array.isArray(updatedData[key as keyof ResponseData]) && (updatedData[key as keyof ResponseData] as string[])?.length > 1
+        );
+
+        const nextMessages: Message[] = [thankYouMessage];
+        if (nextVariantField) {
+          const nextField = nextVariantField as keyof ResponseData;
+          const options = updatedData[nextField] as string[];
+          const variantMessage: Message = {
+            user: 'Cleverly',
+            text: `I have detected an error in the input ${nextField}. Did you mean\n- ${options.join('\n- ')}`,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          };
+          nextMessages.push(variantMessage);
+          setLastField(nextField);
+          setFieldOptions(options);
+        } else {
+          const missingFields = Object.keys(updatedData).filter(key => !updatedData[key as keyof ResponseData]);
+          if (missingFields.length > 0) {
+            const missingFieldNames = missingFields.join('\n- ');
+            const missingFieldsMessage: Message = {
+              user: 'Cleverly',
+              text: `Some fields have missing information, please check the work order on the right and fill accordingly:\n- ${missingFieldNames}`,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            };
+            nextMessages.push(missingFieldsMessage);
+          }
+        }
+
+        setMessages((prevMessages) => [...prevMessages, ...nextMessages]);
       } else {
         const errorMessage: Message = {
           user: 'Cleverly',
@@ -237,7 +271,7 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, onUserR
       };
       setMessages((prevMessages) => [...prevMessages, thankYouMessage]);
     }
-  }, [allowTyping, user, lastField, fieldOptions]);
+  }, [allowTyping, user, lastField, fieldOptions, parsedData, setParsedData]);
 
   const handleFileUpload = (file: File) => {
     if (!allowTyping) return;
