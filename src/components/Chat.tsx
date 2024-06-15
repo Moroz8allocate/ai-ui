@@ -114,9 +114,10 @@ interface ChatProps {
   serverMessages: string[];
   parsedData: Partial<ResponseData>;
   setParsedData: React.Dispatch<React.SetStateAction<Partial<ResponseData>>>;
+  handleChangeCleverlyResponse: any;
 }
 
-const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedData, setParsedData }) => {
+const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedData, setParsedData, handleChangeCleverlyResponse }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [user] = useState<string>('User');
   const [showModal, setShowModal] = useState<boolean>(true);
@@ -214,6 +215,7 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedD
       if (fieldOptions.includes(variant)) {
         const updatedData = { ...parsedData, [lastField as keyof ResponseData]: variant };
         setParsedData(updatedData);
+        handleChangeCleverlyResponse(updatedData);
         console.log(`Updated field ${lastField} with variant ${variant}`);
         console.log('Updated parsedData:', updatedData);
         const thankYouMessage: Message = {

@@ -46,9 +46,14 @@ const ChatContainer: React.FC = () => {
   const [serverMessages, setServerMessages] = useState<string[]>([]);
   const [parsedData, setParsedData] = useState<Partial<ResponseData>>({});
 
+
+  const handleChangeCleverlyResponse = (response: any) => {
+    setCleverlyResponse(response)
+  }
+
   const handleCleverlyResponse = useCallback((response: string) => {
     const parsedResponse = JSON.parse(response);
-    setCleverlyResponse(parsedResponse);
+    // setCleverlyResponse(parsedResponse);
 
     const parsedResult = responseSchema.safeParse(parsedResponse.pdfResult || parsedResponse);
 
@@ -75,7 +80,7 @@ const ChatContainer: React.FC = () => {
 
   return (
     <Container>
-      <Chat onCleverlyResponse={handleCleverlyResponse} serverMessages={serverMessages} parsedData={parsedData} setParsedData={setParsedData} />
+      <Chat onCleverlyResponse={handleCleverlyResponse} serverMessages={serverMessages} parsedData={parsedData} setParsedData={setParsedData} handleChangeCleverlyResponse={handleChangeCleverlyResponse} />
       <CleverlyResponseWindow response={cleverlyResponse} />
     </Container>
   );
