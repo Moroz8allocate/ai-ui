@@ -70,7 +70,7 @@ const ChatContainer: React.FC = () => {
       return [];
     });
 
-    setServerMessages(initialMessages.concat(variantMessages));
+    setServerMessages(initialMessages.concat(variantMessages.length > 0 ? [variantMessages[0]] : []));
   }, []);
 
   return (
