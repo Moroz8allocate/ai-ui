@@ -101,39 +101,13 @@ interface JobHistory {
   date: string;
 }
 
-interface ResponseData {
-  admin: string;
-  customer: string;
-  contactUser: string;
-  source: string;
-  property: string;
-  sublocation: string;
-  access: string;
-  assetCategory: string;
-  jobDescription: string;
-  workDescription: string;
-  priority: string;
-  estimatedDuration: string;
-  unit: string;
-  reference: string;
-  costCategory: string;
-  service: string;
-  pricing: string;
-  timeSpan: string;
-  timing: string;
-  startTime: string;
-  endTime: string;
-  allowPremiumRates: boolean;
-  compliance: boolean;
-  jobHistory: JobHistory[];
-}
 
 interface CleverlyResponseWindowProps {
-  response: { pdfResult: Partial<ResponseData> } & Partial<ResponseData>;
+  response: { pdfResult: any };
 }
 
 const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ response }) => {
-  const [data, setData] = useState<ResponseData>({
+  const [data, setData] = useState<any>({
     admin: '',
     customer: '',
     contactUser: '',
@@ -164,27 +138,27 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
     if (response) {
       const filteredResponse = Object.entries(response.pdfResult || response).reduce((acc, [key, value]) => {
         if (!Array.isArray(value) || value.length <= 1) {
-          (acc as any)[key as keyof ResponseData] = value;
+          (acc as any)[key] = value;
         }
         return acc;
-      }, {} as Partial<ResponseData>);
+      }, {});
       
-      setData((prevData: ResponseData) => ({
+      setData((prevData: any) => ({
         ...prevData,
         ...filteredResponse,
       }));
     }
   }, [response]);
 
-  const handleChange = (field: keyof ResponseData, value: any) => {
-    setData((prevData: ResponseData) => ({
+  const handleChange = (field:any, value: any) => {
+    setData((prevData: any) => ({
       ...prevData,
       [field]: value,
     }));
   };
 
-  const handleCheckboxChange = (field: keyof ResponseData) => {
-    setData((prevData: ResponseData) => ({
+  const handleCheckboxChange = (field: any) => {
+    setData((prevData: any) => ({
       ...prevData,
       [field]: !prevData[field],
     }));

@@ -4,7 +4,6 @@ import { PDFDocument, rgb } from 'pdf-lib';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { Message } from '../types';
-import { ResponseData } from './ChatContainer';
 
 const ChatWrapper = styled.div`
   display: flex;
@@ -112,8 +111,8 @@ const ModalButton = styled.button`
 interface ChatProps {
   onCleverlyResponse: (response: string) => void;
   serverMessages: string[];
-  parsedData: Partial<ResponseData>;
-  setParsedData: React.Dispatch<React.SetStateAction<Partial<ResponseData>>>;
+  parsedData: any;
+  setParsedData: React.Dispatch<React.SetStateAction<any>>;
   handleChangeCleverlyResponse: any;
 }
 
@@ -213,11 +212,9 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedD
     if (text.startsWith('Please use ')) {
       const variant = text.split('Please use ')[1].trim();
       if (fieldOptions.includes(variant)) {
-        const updatedData = { ...parsedData, [lastField as keyof ResponseData]: variant };
+        const updatedData = { ...parsedData, [lastField as any]: variant };
         setParsedData(updatedData);
         handleChangeCleverlyResponse(updatedData);
-        console.log(`Updated field ${lastField} with variant ${variant}`);
-        console.log('Updated parsedData:', updatedData);
         const thankYouMessage: Message = {
           user: 'Cleverly',
           text: `Thank you! I have updated the ${lastField} field with the one of your choosing.`,
@@ -225,12 +222,12 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedD
         };
 
         const nextVariantField = Object.keys(updatedData).find(
-          key => Array.isArray(updatedData[key as keyof ResponseData]) && (updatedData[key as keyof ResponseData] as string[])?.length > 1
+          key => Array.isArray(updatedData[key]) && (updatedData[key] as string[])?.length > 1
         );
 
         const nextMessages: Message[] = [thankYouMessage];
         if (nextVariantField) {
-          const nextField = nextVariantField as keyof ResponseData;
+          const nextField = nextVariantField;
           const options = updatedData[nextField] as string[];
           const variantMessage: Message = {
             user: 'Cleverly',
@@ -241,7 +238,7 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedD
           setLastField(nextField);
           setFieldOptions(options);
         } else {
-          const missingFields = Object.keys(updatedData).filter(key => !updatedData[key as keyof ResponseData]);
+          const missingFields = Object.keys(updatedData).filter(key => !updatedData[key]);
           if (missingFields.length > 0) {
             const missingFieldNames = missingFields.join('\n- ');
             const missingFieldsMessage: Message = {
