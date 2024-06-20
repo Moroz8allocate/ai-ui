@@ -5,6 +5,7 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { Message } from '../types';
 
+
 const ChatWrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -33,11 +34,15 @@ const AvatarCircle = styled.div`
   align-items: center;
   border: 3px solid #d0d7e9;
   margin-right: 10px;
+  background-image: url('/images/left-top-icon.png');
+  background-size: cover;
+  background-position: center;
 `;
 
 const AvatarIcon = styled.img`
   width: 40px;
   height: 40px;
+  display: none; // Hide the icon since we're using a background image
 `;
 
 const ModalOverlay = styled.div`
@@ -80,11 +85,15 @@ const ModalAvatarCircle = styled.div`
   align-items: center;
   border: 3px solid #d0d7e9;
   margin-bottom: 10px;
+  background-image: url('/images/left-top-icon.png');
+  background-size: cover;
+  background-position: center;
 `;
 
 const ModalAvatarIcon = styled.img`
   width: 40px;
   height: 40px;
+  display: none; // Hide the icon since we're using a background image
 `;
 
 const ModalText = styled.p`
@@ -201,30 +210,27 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedD
 
   const sendMessage = useCallback(async (text: string) => {
     if (!allowTyping) return;
-
-    const message: Message = {
-      user,
-      text,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-    setMessages((prevMessages) => [...prevMessages, message]);
-
+  
     if (text.startsWith('Please use ')) {
       const variant = text.split('Please use ')[1].trim();
       if (fieldOptions.includes(variant)) {
         const updatedData = { ...parsedData, [lastField as any]: variant };
         setParsedData(updatedData);
         handleChangeCleverlyResponse(updatedData);
+  
         const thankYouMessage: Message = {
           user: 'Cleverly',
           text: `Thank you! I have updated the ${lastField} field with the one of your choosing.`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
-
+  
         const nextVariantField = Object.keys(updatedData).find(
-          key => Array.isArray(updatedData[key]) && (updatedData[key] as string[])?.length > 1
+          key => 
+            Array.isArray(updatedData[key]) && 
+            (updatedData[key] as string[])?.length > 1 && 
+            !["source", "unit", "timeSpan"].includes(key)
         );
-
+  
         const nextMessages: Message[] = [thankYouMessage];
         if (nextVariantField) {
           const nextField = nextVariantField;
@@ -249,7 +255,7 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedD
             nextMessages.push(missingFieldsMessage);
           }
         }
-
+  
         setMessages((prevMessages) => [...prevMessages, ...nextMessages]);
       } else {
         const errorMessage: Message = {
@@ -260,9 +266,16 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedD
         setMessages((prevMessages) => [...prevMessages, errorMessage]);
       }
     } else {
+      const message: Message = {
+        user,
+        text,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prevMessages) => [...prevMessages, message]);
+  
       const pdfBytes = await createPdfFromText(text);
       ws.current?.send(pdfBytes);
-
+  
       const thankYouMessage: Message = {
         user: 'Cleverly',
         text: 'Thank you. I am processing the text from your input and will then try to create the work order.',
@@ -303,15 +316,17 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedD
     setShowModal(false);
   };
 
+  const handleButtonClick = (option: string) => {
+    sendMessage(`Please use ${option}`);
+  };
+
   return (
     <ChatWrapper>
       {showModal && (
         <ModalOverlay>
           <ModalContent>
             <ModalHeader>
-              <ModalAvatarCircle>
-                <ModalAvatarIcon src="/images/bulb.png" alt="Cleverly Icon" />
-              </ModalAvatarCircle>
+              <ModalAvatarCircle />
               <ModalText>Hi, I’m Dux - your Cleverly AI Assistant.</ModalText>
               <ModalText>What can I do for you today?</ModalText>
               <ModalText>Choose one of the options below and we will get started!</ModalText>
@@ -324,11 +339,9 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedD
         </ModalOverlay>
       )}
       <ChatHeader>
-        <AvatarCircle>
-          <AvatarIcon src="/images/bulb.png" alt="Cleverly Icon" />
-        </AvatarCircle>
+        <AvatarCircle />
       </ChatHeader>
-      <MessageList messages={messages} />
+      <MessageList messages={messages} onButtonClick={handleButtonClick} />
       <MessageInput onSend={sendMessage} onFileUpload={handleFileUpload} />
     </ChatWrapper>
   );

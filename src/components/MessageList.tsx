@@ -68,16 +68,47 @@ const FileIcon = styled.div`
   margin-right: 10px;
 `;
 
+const Button = styled.button`
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 5px;
+`;
+
 interface MessageListProps {
   messages: Message[];
+  onButtonClick: (option: string) => void;
 }
 
-const MessageList: React.FC<MessageListProps> = ({ messages }) => {
+const MessageList: React.FC<MessageListProps> = ({ messages, onButtonClick }) => {
   const getAvatar = (user: string) => {
     if (user === 'Cleverly') {
-      return <AvatarImg src="/images/bulb.png" alt="Cleverly Avatar" />;
+      return <AvatarImg src="/images/blub-in-chat.png" alt="Cleverly Avatar" />;
     }
     return <span>IM</span>;
+  };
+
+  const renderMessageContent = (message: Message) => {
+    if (message.text.includes('Did you mean')) {
+      const options = message.text.split('\n- ').slice(1).map(option => option.trim());
+      return (
+        <div>
+          {message.text.split('Did you mean')[0]} Did you mean:
+          {options.map(option => (
+            <Button key={option} onClick={() => onButtonClick(option)}>
+              {option}
+            </Button>
+          ))}
+        </div>
+      );
+    } else if (message.text.startsWith('File_pdf')) {
+      return <FileIcon>📄 {message.text.replace('File_pdf ', '')}</FileIcon>;
+    } else {
+      return message.text;
+    }
   };
 
   return (
@@ -87,13 +118,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
           <Avatar>{getAvatar(message.user)}</Avatar>
           <MessageContent>
             <MessageHeader>{message.user}</MessageHeader>
-            <div>
-              {message.text.startsWith('File_pdf') ? (
-                <FileIcon>📄 {message.text.replace('File_pdf ', '')}</FileIcon>
-              ) : (
-                message.text
-              )}
-            </div>
+            <div>{renderMessageContent(message)}</div>
             <Timestamp>{message.timestamp}</Timestamp>
           </MessageContent>
         </MessageItem>

@@ -12,13 +12,16 @@ import {
   Checkbox,
   Button,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
+  MenuItem,
+  Select,
+  InputLabel,
+  Typography,
   TableContainer,
+  Table,
   TableHead,
   TableRow,
-  Typography
+  TableCell,
+  TableBody,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
@@ -26,7 +29,8 @@ const Window = styled.div`
   width: 100%;
   min-width: 300px;
   padding: 10px;
-  background-color: #f5f7fa;
+  background-color: #f5f7fa; // This is the original background color
+  background-color: #FFFFFF; // Updated background color to a light gray
   box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: auto;
@@ -101,10 +105,13 @@ interface JobHistory {
   date: string;
 }
 
-
 interface CleverlyResponseWindowProps {
   response: { pdfResult: any };
 }
+
+const validSources = ["Call", "Email", "Portal", "Other"];
+const validUnits = ["Hours", "Minutes", "Days"];
+const validTimeSpans = ["Today", "This week", "This month", "Next three months"];
 
 const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ response }) => {
   const [data, setData] = useState<any>({
@@ -142,7 +149,7 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
         }
         return acc;
       }, {});
-      
+
       setData((prevData: any) => ({
         ...prevData,
         ...filteredResponse,
@@ -150,7 +157,7 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
     }
   }, [response]);
 
-  const handleChange = (field:any, value: any) => {
+  const handleChange = (field: any, value: any) => {
     setData((prevData: any) => ({
       ...prevData,
       [field]: value,
@@ -167,24 +174,6 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
   const handleClose = () => {
     console.log('Close window');
   };
-
-  if (!response) {
-    return (
-      <Window>
-        <Header>
-          <LogoContainer>
-            <StarsIcon src="/images/stars.png" alt="Stars Icon" />
-            <BulbIcon src="/images/bulb.png" alt="Bulb Icon" />
-            <LogoText>Cleverly</LogoText>
-          </LogoContainer>
-          <CloseButton onClick={handleClose}>✖</CloseButton>
-        </Header>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-          <img src="/images/logo.png" alt="Cleverly Logo" />
-        </div>
-      </Window>
-    );
-  }
 
   return (
     <Window>
@@ -238,12 +227,18 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
                   />
                 </FormControl>
                 <FormControl fullWidth margin="dense" variant="outlined">
-                  <TextField
-                    label="Source"
+                  <InputLabel>Source</InputLabel>
+                  <Select
                     value={data.source}
                     onChange={(e) => handleChange('source', e.target.value)}
-                    variant="outlined"
-                  />
+                    label="Source"
+                  >
+                    {validSources.map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </Select>
                 </FormControl>
               </AccordionDetails>
             </Accordion>
@@ -295,12 +290,18 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
                   />
                 </FormControl>
                 <FormControl fullWidth margin="dense" variant="outlined">
-                  <TextField
-                    label="Unit"
+                  <InputLabel>Unit</InputLabel>
+                  <Select
                     value={data.unit}
                     onChange={(e) => handleChange('unit', e.target.value)}
-                    variant="outlined"
-                  />
+                    label="Unit"
+                  >
+                    {validUnits.map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </Select>
                 </FormControl>
                 <FormControl fullWidth margin="dense" variant="outlined">
                   <TextField
@@ -373,12 +374,18 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
               </AccordionSummary>
               <AccordionDetails>
                 <FormControl fullWidth margin="dense" variant="outlined">
-                  <TextField
-                    label="Select Time span"
+                  <InputLabel>Select Time span</InputLabel>
+                  <Select
                     value={data.timeSpan}
                     onChange={(e) => handleChange('timeSpan', e.target.value)}
-                    variant="outlined"
-                  />
+                    label="Select Time span"
+                  >
+                    {validTimeSpans.map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </Select>
                 </FormControl>
                 <FormControl fullWidth margin="dense" variant="outlined">
                   <TextField
