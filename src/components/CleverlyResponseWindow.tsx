@@ -106,7 +106,7 @@ interface JobHistory {
 }
 
 interface CleverlyResponseWindowProps {
-  response: { pdfResult: any };
+  response: any;
 }
 
 const validSources = ["Call", "Email", "Portal", "Other"];
@@ -174,6 +174,24 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
   const handleClose = () => {
     console.log('Close window');
   };
+
+  if (!response) {
+    return (
+      <Window>
+        <Header>
+          <LogoContainer>
+            <StarsIcon src="/images/stars.png" alt="Stars Icon" />
+            <BulbIcon src="/images/bulb.png" alt="Bulb Icon" />
+            <LogoText>Cleverly</LogoText>
+          </LogoContainer>
+          <CloseButton onClick={handleClose}>✖</CloseButton>
+        </Header>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+          <img src="/images/logo.png" alt="Cleverly Logo" />
+        </div>
+      </Window>
+    );
+  }
 
   return (
     <Window>
