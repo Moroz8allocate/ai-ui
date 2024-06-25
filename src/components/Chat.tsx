@@ -267,13 +267,14 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedD
         };
         setMessages((prevMessages) => [...prevMessages, errorMessage]);
       }
-    } else {
+    } else if (!messages.find(({ text }) => text.includes('Some fields have missing information'))) {
       const message: Message = {
         user,
         text,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prevMessages) => [...prevMessages, message]);
+      console.log("🚀 ~ sendMessage ~ messages:", messages)
 
       const pdfBytes = await createPdfFromText(text);
       ws.current?.send(pdfBytes);
@@ -283,6 +284,22 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedD
         text: 'Thank you. I am processing the text from your input and will then try to create the work order.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
+      setMessages((prevMessages) => [...prevMessages, thankYouMessage]);
+    }
+    else {
+      const message: Message = {
+        user,
+        text,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prevMessages) => [...prevMessages, message]);
+
+      const thankYouMessage: Message = {
+        user: 'Cleverly',
+        text: 'Thank you.',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+
       setMessages((prevMessages) => [...prevMessages, thankYouMessage]);
     }
   }, [allowTyping, user, lastField, fieldOptions, parsedData, setParsedData]);
