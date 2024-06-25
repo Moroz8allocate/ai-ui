@@ -101,6 +101,7 @@ const TimeFieldsWrapper = styled.div`
   gap: 10px;
 `;
 
+const AutocompleteWithDropdownIcon = styled(Autocomplete)`
   .MuiAutocomplete-endAdornment {
     display: none;
   }
