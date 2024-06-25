@@ -22,8 +22,10 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  Autocomplete,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 const Window = styled.div`
   width: 100%;
@@ -99,6 +101,22 @@ const TimeFieldsWrapper = styled.div`
   gap: 10px;
 `;
 
+  .MuiAutocomplete-endAdornment {
+    display: none;
+  }
+`;
+
+const CustomTextField = styled(TextField)`
+  .MuiInputBase-root {
+    position: relative;
+    .MuiSvgIcon-root {
+      position: absolute;
+      right: 7px;
+      pointer-events: none; /* Ensure the icon is not interactive */
+    }
+  }
+`;
+
 interface JobHistory {
   title: string;
   service: string;
@@ -141,6 +159,18 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
     jobHistory: []
   });
 
+  const [options, setOptions] = useState<any>({
+    admin: ['Admin 1', 'Admin 2', 'Admin 3'],
+    customer: ['Customer 1', 'Customer 2', 'Customer 3'],
+    contactUser: ['Contact User 1', 'Contact User 2', 'Contact User 3'],
+    property: ['Property 1', 'Property 2', 'Property 3'],
+    sublocation: ['Sublocation 1', 'Sublocation 2', 'Sublocation 3'],
+    assetCategory: ['Asset Category 1', 'Asset Category 2', 'Asset Category 3'],
+    jobDescription: ['Job Description 1', 'Job Description 2', 'Job Description 3'],
+    service: ['Service 1', 'Service 2', 'Service 3'],
+    costCategory: ['Cost Category 1', 'Cost Category 2', 'Cost Category 3']
+  });
+
   useEffect(() => {
     if (response) {
       const filteredResponse = Object.entries(response.pdfResult || response).reduce((acc, [key, value]) => {
@@ -174,6 +204,33 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
   const handleClose = () => {
     console.log('Close window');
   };
+
+  const renderAutocompleteField = (label: string, field: string, options: string[]) => (
+    <FormControl fullWidth margin="dense" variant="outlined" style={{ position: 'relative' }}>
+      <AutocompleteWithDropdownIcon
+        freeSolo
+        options={options}
+        value={data[field]}
+        onChange={(e, newValue) => handleChange(field, newValue)}
+        renderInput={(params) => (
+          <CustomTextField
+            {...params}
+            label={label}
+            onChange={(e) => handleChange(field, e.target.value)}
+            variant="outlined"
+            InputProps={{
+              ...params.InputProps,
+              endAdornment: (
+                <>
+                  <ArrowDropDownIcon />
+                </>
+              ),
+            }}
+          />
+        )}
+      />
+    </FormControl>
+  );
 
   if (!response) {
     return (
@@ -211,14 +268,7 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
                 <Typography variant="subtitle1">Admin User</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <FormControl fullWidth margin="dense" variant="outlined">
-                  <TextField
-                    label="Assigned to"
-                    value={data.admin}
-                    onChange={(e) => handleChange('admin', e.target.value)}
-                    variant="outlined"
-                  />
-                </FormControl>
+                {renderAutocompleteField('Assigned to', 'admin', options.admin)}
               </AccordionDetails>
             </Accordion>
           </FormSection>
@@ -228,27 +278,13 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
                 <Typography variant="subtitle1">Customer</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <FormControl fullWidth margin="dense" variant="outlined">
-                  <TextField
-                    label="Customer"
-                    value={data.customer}
-                    onChange={(e) => handleChange('customer', e.target.value)}
-                    variant="outlined"
-                  />
-                </FormControl>
-                <FormControl fullWidth margin="dense" variant="outlined">
-                  <TextField
-                    label="Contact User"
-                    value={data.contactUser}
-                    onChange={(e) => handleChange('contactUser', e.target.value)}
-                    variant="outlined"
-                  />
-                </FormControl>
+                {renderAutocompleteField('Customer', 'customer', options.customer)}
+                {renderAutocompleteField('Contact User', 'contactUser', options.contactUser)}
                 <FormControl fullWidth margin="dense" variant="outlined">
                   <InputLabel>Source</InputLabel>
                   <Select
                     value={data.source}
-                    onChange={(e) => handleChange('source', e.target.value)}
+                    onChange={(e) => handleChange('source', e.target.value as string)}
                     label="Source"
                   >
                     {validSources.map((option) => (
@@ -267,14 +303,7 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
                 <Typography variant="subtitle1">Description</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <FormControl fullWidth margin="dense" variant="outlined">
-                  <TextField
-                    label="Short job description"
-                    value={data.jobDescription}
-                    onChange={(e) => handleChange('jobDescription', e.target.value)}
-                    variant="outlined"
-                  />
-                </FormControl>
+                {renderAutocompleteField('Short job description', 'jobDescription', options.jobDescription)}
                 <FormControl fullWidth margin="dense" variant="outlined">
                   <TextField
                     label="Work Description"
@@ -347,22 +376,8 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
                 <Typography variant="subtitle1">Service</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <FormControl fullWidth margin="dense" variant="outlined">
-                  <TextField
-                    label="Cost category"
-                    value={data.costCategory}
-                    onChange={(e) => handleChange('costCategory', e.target.value)}
-                    variant="outlined"
-                  />
-                </FormControl>
-                <FormControl fullWidth margin="dense" variant="outlined">
-                  <TextField
-                    label="Service"
-                    value={data.service}
-                    onChange={(e) => handleChange('service', e.target.value)}
-                    variant="outlined"
-                  />
-                </FormControl>
+                {renderAutocompleteField('Cost category', 'costCategory', options.costCategory)}
+                {renderAutocompleteField('Service', 'service', options.service)}
               </AccordionDetails>
             </Accordion>
           </FormSection>
@@ -455,22 +470,8 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
                 <Typography variant="subtitle1">Location</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <FormControl fullWidth margin="dense" variant="outlined">
-                  <TextField
-                    label="Property"
-                    value={data.property}
-                    onChange={(e) => handleChange('property', e.target.value)}
-                    variant="outlined"
-                  />
-                </FormControl>
-                <FormControl fullWidth margin="dense" variant="outlined">
-                  <TextField
-                    label="Sublocation"
-                    value={data.sublocation}
-                    onChange={(e) => handleChange('sublocation', e.target.value)}
-                    variant="outlined"
-                  />
-                </FormControl>
+                {renderAutocompleteField('Property', 'property', options.property)}
+                {renderAutocompleteField('Sublocation', 'sublocation', options.sublocation)}
                 <FormControl fullWidth margin="dense" variant="outlined">
                   <TextField
                     label="Access information"
@@ -480,14 +481,7 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
                     variant="outlined"
                   />
                 </FormControl>
-                <FormControl fullWidth margin="dense" variant="outlined">
-                  <TextField
-                    label="Asset Category"
-                    value={data.assetCategory}
-                    onChange={(e) => handleChange('assetCategory', e.target.value)}
-                    variant="outlined"
-                  />
-                </FormControl>
+                {renderAutocompleteField('Asset Category', 'assetCategory', options.assetCategory)}
               </AccordionDetails>
             </Accordion>
           </FormSection>
