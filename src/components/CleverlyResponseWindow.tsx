@@ -26,6 +26,7 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import './styles.css';
 
 const Window = styled.div`
   width: 100%;
@@ -126,13 +127,16 @@ interface JobHistory {
 
 interface CleverlyResponseWindowProps {
   response: any;
+  parsedResponseDb: any;
+  isBlocked: boolean
 }
 
 const validSources = ["Call", "Email", "Portal", "Other"];
 const validUnits = ["Hours", "Minutes", "Days"];
 const validTimeSpans = ["Today", "This week", "This month", "Next three months"];
 
-const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ response }) => {
+const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ response, parsedResponseDb, isBlocked }) => {
+  console.log("🚀 ~CleverlyResponseWindow  parsedResponseDb:", parsedResponseDb)
   const [data, setData] = useState<any>({
     admin: '',
     customer: '',
@@ -171,6 +175,24 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
     service: ['Service 1', 'Service 2', 'Service 3'],
     costCategory: ['Cost Category 1', 'Cost Category 2', 'Cost Category 3']
   });
+
+
+
+  useEffect(() => {
+    if (parsedResponseDb) {
+      setOptions({
+        admin: parsedResponseDb?.admin,
+        customer: parsedResponseDb?.customer,
+        contactUser: parsedResponseDb?.contactUser,
+        property: parsedResponseDb?.property,
+        sublocation: parsedResponseDb?.sublocation,
+        assetCategory: parsedResponseDb?.assetCategory,
+        jobDescription: parsedResponseDb?.jobDescription,
+        service: parsedResponseDb?.service,
+        costCategory: parsedResponseDb?.costCategory
+      })
+    }
+  }, [parsedResponseDb]);
 
   useEffect(() => {
     if (response) {
@@ -261,7 +283,7 @@ const CleverlyResponseWindow: React.FC<CleverlyResponseWindowProps> = ({ respons
         </LogoContainer>
         <CloseButton onClick={handleClose}>✖</CloseButton>
       </Header>
-      <FormRow>
+      <FormRow className={isBlocked ? 'blocked' : ''}>
         <FormColumn>
           <FormSection>
             <Accordion defaultExpanded>

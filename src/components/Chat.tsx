@@ -123,9 +123,10 @@ interface ChatProps {
   parsedData: any;
   setParsedData: React.Dispatch<React.SetStateAction<any>>;
   handleChangeCleverlyResponse: any;
+  onIsBlockTrigger: Function;
 }
 
-const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedData, setParsedData, handleChangeCleverlyResponse }) => {
+const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedData, setParsedData, handleChangeCleverlyResponse, onIsBlockTrigger }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [user] = useState<string>('User');
   const [showModal, setShowModal] = useState<boolean>(true);
@@ -210,27 +211,27 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedD
 
   const sendMessage = useCallback(async (text: string) => {
     if (!allowTyping) return;
-  
+
     if (text.startsWith('Please use ')) {
       const variant = text.split('Please use ')[1].trim();
       if (fieldOptions.includes(variant)) {
         const updatedData = { ...parsedData, [lastField as any]: variant };
         setParsedData(updatedData);
         handleChangeCleverlyResponse(updatedData);
-  
+
         const thankYouMessage: Message = {
           user: 'Cleverly',
           text: `Thank you! I have updated the ${lastField} field with the one of your choosing.`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
-  
+
         const nextVariantField = Object.keys(updatedData).find(
-          key => 
-            Array.isArray(updatedData[key]) && 
-            (updatedData[key] as string[])?.length > 1 && 
+          key =>
+            Array.isArray(updatedData[key]) &&
+            (updatedData[key] as string[])?.length > 1 &&
             !["source", "unit", "timeSpan"].includes(key)
         );
-  
+
         const nextMessages: Message[] = [thankYouMessage];
         if (nextVariantField) {
           const nextField = nextVariantField;
@@ -253,9 +254,10 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedD
               timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             };
             nextMessages.push(missingFieldsMessage);
+            onIsBlockTrigger(false)
           }
         }
-  
+
         setMessages((prevMessages) => [...prevMessages, ...nextMessages]);
       } else {
         const errorMessage: Message = {
@@ -272,10 +274,10 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedD
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prevMessages) => [...prevMessages, message]);
-  
+
       const pdfBytes = await createPdfFromText(text);
       ws.current?.send(pdfBytes);
-  
+
       const thankYouMessage: Message = {
         user: 'Cleverly',
         text: 'Thank you. I am processing the text from your input and will then try to create the work order.',
@@ -306,6 +308,7 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedD
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages((prevMessages) => [...prevMessages, thankYouMessage]);
+        onIsBlockTrigger(true)
       }
     };
     reader.readAsArrayBuffer(file);

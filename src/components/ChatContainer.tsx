@@ -42,63 +42,73 @@ const responseSchema = z.object({
 // export type ResponseData = z.infer<typeof responseSchema>;
 
 const ChatContainer: React.FC = () => {
+  const [isBlocked, setIsBlocked] = useState<boolean>(false);
   const [cleverlyResponse, setCleverlyResponse] = useState<any>(null);
+  const [parsedResponseDb, setParsedResponseDb] = useState<any>(null);
   const [serverMessages, setServerMessages] = useState<string[]>([]);
   const [parsedData, setParsedData] = useState<any>({});
 
+  const onIsBlockTrigger = (status: boolean) => {
+    setIsBlocked(status)
+  }
 
   const handleChangeCleverlyResponse = (response: any) => {
+    console.log("🚀 ~ handleChangeCleverlyResponse ~ response:", response)
     setCleverlyResponse(response)
   }
 
   const validSources = ["Call", "Email", "Portal", "Other"];
   const validUnits = ["Hours", "Minutes", "Days"];
   const validTimeSpans = ["Today", "This week", "This month", "Next three months"];
-  
+
   const handleCleverlyResponse = useCallback((response: string) => {
-    const parsedResponse = JSON.parse(response);
-  
+    console.log("🚀 ~ handleCleverlyResponse ~ response:", response)
+    const parsedResponseAll = JSON.parse(response);
+    const parsedResponse = parsedResponseAll.pdfResult[0]
+    setParsedResponseDb(parsedResponseAll.pdfResult[1])
+    console.log("🚀 ~ handleCleverlyResponse ~ parsedResponseDb:", parsedResponseDb)
+
     // Validate specific fields
     const validateField = (field: string, validValues: string[]) => {
       return validValues.includes(parsedResponse[field]) ? parsedResponse[field] : "";
     };
-  
+
     parsedResponse.source = validateField("source", validSources);
     parsedResponse.unit = validateField("unit", validUnits);
     parsedResponse.timeSpan = validateField("timeSpan", validTimeSpans);
-  
+
     const parsedResult = responseSchema.safeParse(parsedResponse.pdfResult || parsedResponse);
-  
+
     if (!parsedResult.success) {
       console.error('Invalid response data');
       return;
     }
-  
+
     setParsedData(parsedResult.data);
     setCleverlyResponse(parsedResult.data);
-  
+
     const firstMessage = 'Please see the work order created on the right. To generate the work order, you must press submit. However, please check this information and ensure you are happy with all the relevant information.';
     const initialMessages = [firstMessage];
-  
+
     const variantMessages = Object.entries(parsedResult.data).flatMap(([key, value]) => {
       if (["source", "unit", "timeSpan"].includes(key)) {
         return [];
       }
-  
+
       if (Array.isArray(value) && value.length > 1) {
         return `I have detected an error in the input ${key}. Did you mean\n- ${value.join('\n- ')}`;
       }
       return [];
     });
-  
+
     setServerMessages(initialMessages.concat(variantMessages.length > 0 ? [variantMessages[0]] : []));
   }, []);
-  
+
 
   return (
     <Container>
-      <Chat onCleverlyResponse={handleCleverlyResponse} serverMessages={serverMessages} parsedData={parsedData} setParsedData={setParsedData} handleChangeCleverlyResponse={handleChangeCleverlyResponse} />
-      <CleverlyResponseWindow response={cleverlyResponse} />
+      <Chat onIsBlockTrigger={onIsBlockTrigger} onCleverlyResponse={handleCleverlyResponse} serverMessages={serverMessages} parsedData={parsedData} setParsedData={setParsedData} handleChangeCleverlyResponse={handleChangeCleverlyResponse} />
+      <CleverlyResponseWindow response={cleverlyResponse} parsedResponseDb={parsedResponseDb} isBlocked={isBlocked} />
     </Container>
   );
 };
