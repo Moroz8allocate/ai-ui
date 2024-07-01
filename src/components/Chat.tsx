@@ -285,6 +285,7 @@ const Chat: React.FC<ChatProps> = ({ onCleverlyResponse, serverMessages, parsedD
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prevMessages) => [...prevMessages, thankYouMessage]);
+      onIsBlockTrigger(true)
     }
     else {
       const message: Message = {
